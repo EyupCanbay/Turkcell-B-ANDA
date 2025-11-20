@@ -9,12 +9,11 @@ import (
 	"skillhub-backend/internal/service"
 	"skillhub-backend/pkg/utils"
 
-	_ "skillhub-backend/docs" // Bu klasör birazdan oluşacak, kızarsa korkma!
-
-	echoSwagger "github.com/swaggo/echo-swagger"
+	_ "skillhub-backend/docs" // Swagger docs
 
 	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 // @title SkillHub API
@@ -38,39 +37,64 @@ import (
 func main() {
 	// 1. DB Bağlantısı (PostgreSQL)
 	db := config.ConnectDB()
-	// Auto Migrate (Tabloları koddan oluşturmak için - Production'da kapatılır)
-	db.AutoMigrate(&domain.User{})
 
-	// 2. Dependency Injection (Bağımlılıkları Elle Enjekte Ediyoruz)
+	// Auto Migrate (Tabloları oluştur)
+	// Hem User hem de Category tablolarını garanti altına alıyoruz.
+	db.AutoMigrate(&domain.User{}, &domain.Category{})
+
+	// 2. Dependency Injection (Bağımlılıkları Bağlama)
+	
+	// --- USER MODÜLÜ ---
 	userRepo := repository.NewUserRepository(db)
 	authService := service.NewAuthService(userRepo)
 	userService := service.NewUserService(userRepo)
 	userHandler := handler.NewUserHandler(authService, userService)
 
+	// --- CATEGORY MODÜLÜ (YENİ) ---
+	categoryRepo := repository.NewCategoryRepository(db)
+	categoryService := service.NewCategoryService(categoryRepo)
+	categoryHandler := handler.NewCategoryHandler(categoryService)
+
 	// 3. Echo Setup
 	e := echo.New()
 
+	// Swagger Endpoint
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
-	// 4. Public Routes (Herkese Açık)
+	// ---------------------------------------------------------
+	// 4. PUBLIC ROUTES (Token Gerekmez - Herkese Açık)
+	// ---------------------------------------------------------
+	
+	// Auth İşlemleri
 	e.POST("/register", userHandler.Register)
 	e.POST("/login", userHandler.Login)
 
-	// 5. Protected Routes (JWT Gerektirir)
+	// Kategori Listeleme (Katalog herkes tarafından görülebilir)
+	e.GET("/categories", categoryHandler.GetAll)      // <--- YENİ
+	e.GET("/categories/:id", categoryHandler.GetByID) // <--- YENİ
+
+	// ---------------------------------------------------------
+	// 5. PROTECTED ROUTES (Token Zorunlu - Kilitli Alan)
+	// ---------------------------------------------------------
 	r := e.Group("/api")
 
-	// JWT Middleware'i (Token kontrolü)
+	// JWT Middleware Ayarı
 	config := echojwt.Config{
-		SigningKey: []byte(utils.JWTSecret), // Env dosyasından alınmalı
+		SigningKey: utils.JWTSecret, // utils paketindeki gizli anahtar
 	}
 	r.Use(echojwt.WithConfig(config))
 
-	// a. Profil Tamamlama (Middleware takılmaz, çünkü burası zaten tamamlama yeri)
+	// A. Genel Korumalı Rotalar (Profil tamamlama vs.)
 	r.PUT("/complete-profile", userHandler.CompleteProfile)
 
-	// b. Tam Profil Gerektiren Rotalar
-	// Bu gruba giren herkesin Şehir ve Üniversite bilgisi dolu olmak ZORUNDA.
-	// Dolu değilse middleware hata fırlatır, mobilci "Profil Tamamla" ekranını açar.
+	// B. Kategori Yönetimi (Sadece giriş yapmış kullanıcılar ekleyebilir/düzenleyebilir)
+	// Not: İleride buraya "AdminMiddleware" eklenebilir.
+	r.POST("/categories", categoryHandler.Create)       // <--- YENİ
+	r.PUT("/categories/:id", categoryHandler.Update)    // <--- YENİ
+	r.DELETE("/categories/:id", categoryHandler.Delete) // <--- YENİ
+
+	// C. Tam Profil Gerektiren Rotalar (Secure Group)
+	// Bu gruba erişmek için hem Token lazım hem de Şehir/Üni dolu olmalı.
 	secureGroup := r.Group("/secure")
 	secureGroup.Use(middleware.ProfileCompletionMiddleware(userRepo))
 

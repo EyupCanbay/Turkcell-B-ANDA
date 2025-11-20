@@ -1,5 +1,23 @@
 basePath: /
 definitions:
+  domain.CategoryResponse:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  domain.CreateCategoryRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    required:
+    - name
+    type: object
   domain.LoginRequest:
     properties:
       email:
@@ -23,6 +41,13 @@ definitions:
     - email
     - name
     - password
+    type: object
+  domain.UpdateCategoryRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
     type: object
   domain.UpdateProfileRequest:
     properties:
@@ -62,6 +87,96 @@ info:
   title: SkillHub API
   version: "1.0"
 paths:
+  /api/categories:
+    post:
+      consumes:
+      - application/json
+      description: Sisteme yeni eğitim kategorisi ekler.
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Kategori Bilgileri
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Kategori oluşturuldu
+          schema:
+            type: string
+        "400":
+          description: Hatalı veri
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Yeni Kategori Ekle
+      tags:
+      - Categories
+  /api/categories/{id}:
+    delete:
+      description: Kategoriyi silinmiş olarak işaretler.
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Kategori ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: Kategori silindi
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Kategori Sil (Soft Delete)
+      tags:
+      - Categories
+    put:
+      consumes:
+      - application/json
+      description: Var olan bir kategoriyi günceller.
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Kategori ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Güncelleme Bilgileri
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Kategori güncellendi
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Kategori Güncelle
+      tags:
+      - Categories
   /api/complete-profile:
     put:
       consumes:
@@ -152,6 +267,44 @@ paths:
       summary: Profil Bilgilerini Getir
       tags:
       - User
+  /categories:
+    get:
+      description: Sistemdeki aktif kategorileri getirir.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.CategoryResponse'
+            type: array
+      summary: Tüm Kategorileri Listele
+      tags:
+      - Categories
+  /categories/{id}:
+    get:
+      description: Belirtilen ID'ye sahip kategoriyi döner.
+      parameters:
+      - description: Kategori ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.CategoryResponse'
+        "404":
+          description: Kategori bulunamadı
+          schema:
+            type: string
+      summary: ID ile Kategori Getir
+      tags:
+      - Categories
   /login:
     post:
       consumes:
