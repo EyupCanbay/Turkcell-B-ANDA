@@ -28,7 +28,6 @@ func (s *userService) UpdateProfile(userID uint, req *domain.UpdateProfileReques
 		return err
 	}
 	
-	// Alanları güncelle
 	user.City = req.City
 	user.University = req.University
 	user.SkillLevel = req.SkillLevel

@@ -5,7 +5,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// 1. Entity (Veritabanı Tablosu)
 type Category struct {
 	ID          uint           `gorm:"primaryKey"`
 	Name        string         `gorm:"unique;not null;size:100"`
@@ -14,7 +13,6 @@ type Category struct {
 	DeletedAt   gorm.DeletedAt `gorm:"index"` // Soft Delete
 }
 
-// 2. DTOs (Veri Transfer Objeleri)
 type CreateCategoryRequest struct {
 	Name        string `json:"name" validate:"required"`
 	Description string `json:"description"`
@@ -31,7 +29,6 @@ type CategoryResponse struct {
 	Description string `json:"description"`
 }
 
-// 3. Interfaces (Bağımlılıkları Tersine Çevirme - DIP)
 type CategoryRepository interface {
 	Create(category *Category) error
 	FindAll() ([]Category, error)

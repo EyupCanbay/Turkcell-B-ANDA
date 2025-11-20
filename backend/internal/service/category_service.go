@@ -26,7 +26,6 @@ func (s *categoryService) GetAllCategories() ([]domain.CategoryResponse, error) 
 		return nil, err
 	}
 
-	// Entity -> Response DTO dönüşümü
 	var response []domain.CategoryResponse
 	for _, cat := range categories {
 		response = append(response, domain.CategoryResponse{
@@ -56,7 +55,6 @@ func (s *categoryService) UpdateCategory(id uint, req *domain.UpdateCategoryRequ
 		return err
 	}
 
-	// Sadece dolu gelen alanları güncelle
 	if req.Name != "" {
 		cat.Name = req.Name
 	}

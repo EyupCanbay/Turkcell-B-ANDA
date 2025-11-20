@@ -19,7 +19,6 @@ func (r *lessonRepository) Create(lesson *domain.Lesson) error {
 
 func (r *lessonRepository) FindAll() ([]domain.Lesson, error) {
 	var lessons []domain.Lesson
-	// Preload: Dersi getirirken Kategori detayını da içine doldur (JOIN mantığı)
 	err := r.db.Preload("Category").Find(&lessons).Error
 	return lessons, err
 }

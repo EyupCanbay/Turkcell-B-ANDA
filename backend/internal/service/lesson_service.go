@@ -23,14 +23,13 @@ func (s *lessonService) CreateLesson(req *domain.CreateLessonRequest) error {
 	return s.repo.Create(lesson)
 }
 
-// Ortak Helper: Entity listesini Response listesine çevirir
 func mapLessonsToResponse(lessons []domain.Lesson) []domain.LessonResponse {
 	var response []domain.LessonResponse
 	for _, l := range lessons {
 		response = append(response, domain.LessonResponse{
 			ID:           l.ID,
 			CategoryID:   l.CategoryID,
-			CategoryName: l.Category.Name, // Preload sayesinde dolu gelir
+			CategoryName: l.Category.Name, 
 			Title:        l.Title,
 			VideoURL:     l.VideoURL,
 			DurationMin:  l.DurationMin,

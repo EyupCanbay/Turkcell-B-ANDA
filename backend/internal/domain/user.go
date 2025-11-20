@@ -5,7 +5,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// User Entity (DB Tablosu ile eşleşir)
 type User struct {
 	ID         uint           `gorm:"primaryKey"`
 	Name       string         `gorm:"not null"`
@@ -18,7 +17,6 @@ type User struct {
 	DeletedAt  gorm.DeletedAt `gorm:"index"` // Soft Delete Sihri
 }
 
-// DTOs (Data Transfer Objects)
 type RegisterRequest struct {
 	Name     string `json:"name" validate:"required"`
 	Email    string `json:"email" validate:"required,email"`
@@ -43,18 +41,17 @@ type UserResponse struct {
 	City  string `json:"city"`
 }
 
-// Interfaces (SOLID - Interface Segregation & Dependency Inversion)
 type UserRepository interface {
 	Create(user *User) error
 	FindByEmail(email string) (*User, error)
 	FindByID(id uint) (*User, error)
 	Update(user *User) error
-	Delete(id uint) error // Soft Delete yapacak
+	Delete(id uint) error 
 }
 
 type AuthService interface {
 	Register(req *RegisterRequest) error
-	Login(req *LoginRequest) (string, error) // Token döner
+	Login(req *LoginRequest) (string, error) 
 }
 
 type UserService interface {

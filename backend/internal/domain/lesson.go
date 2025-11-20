@@ -5,7 +5,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// 1. Entity
 type Lesson struct {
 	ID          uint           `gorm:"primaryKey"`
 	CategoryID  uint           `gorm:"not null;index"` // Foreign Key
@@ -18,7 +17,6 @@ type Lesson struct {
 	DeletedAt   gorm.DeletedAt `gorm:"index"`
 }
 
-// 2. DTOs
 type CreateLessonRequest struct {
 	CategoryID  uint   `json:"category_id" validate:"required"`
 	Title       string `json:"title" validate:"required"`
@@ -44,7 +42,6 @@ type LessonResponse struct {
 	Difficulty   string `json:"difficulty"`
 }
 
-// 3. Interfaces
 type LessonRepository interface {
 	Create(lesson *Lesson) error
 	FindAll() ([]Lesson, error)
