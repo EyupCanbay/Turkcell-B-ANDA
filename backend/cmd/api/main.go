@@ -9,7 +9,7 @@ import (
 	"skillhub-backend/internal/service"
 	"skillhub-backend/pkg/utils"
 
-	_ "skillhub-backend/docs" // Swagger docs
+	_ "skillhub-backend/docs" // Swagger docs (swag init ile oluşacak)
 
 	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
@@ -39,8 +39,8 @@ func main() {
 	db := config.ConnectDB()
 
 	// Auto Migrate (Tabloları oluştur)
-	// Hem User hem de Category tablolarını garanti altına alıyoruz.
-	db.AutoMigrate(&domain.User{}, &domain.Category{})
+	// User, Category ve Lesson tablolarını garantiye alıyoruz.
+	db.AutoMigrate(&domain.User{}, &domain.Category{}, &domain.Lesson{})
 
 	// 2. Dependency Injection (Bağımlılıkları Bağlama)
 	
@@ -50,10 +50,15 @@ func main() {
 	userService := service.NewUserService(userRepo)
 	userHandler := handler.NewUserHandler(authService, userService)
 
-	// --- CATEGORY MODÜLÜ (YENİ) ---
+	// --- CATEGORY MODÜLÜ ---
 	categoryRepo := repository.NewCategoryRepository(db)
 	categoryService := service.NewCategoryService(categoryRepo)
 	categoryHandler := handler.NewCategoryHandler(categoryService)
+
+	// --- LESSON MODÜLÜ (YENİ EKLENDİ) ---
+	lessonRepo := repository.NewLessonRepository(db)
+	lessonService := service.NewLessonService(lessonRepo)
+	lessonHandler := handler.NewLessonHandler(lessonService)
 
 	// 3. Echo Setup
 	e := echo.New()
@@ -69,9 +74,12 @@ func main() {
 	e.POST("/register", userHandler.Register)
 	e.POST("/login", userHandler.Login)
 
-	// Kategori Listeleme (Katalog herkes tarafından görülebilir)
-	e.GET("/categories", categoryHandler.GetAll)      // <--- YENİ
-	e.GET("/categories/:id", categoryHandler.GetByID) // <--- YENİ
+	// Katalog (Kategoriler ve Dersler herkes tarafından görülebilir)
+	e.GET("/categories", categoryHandler.GetAll)
+	e.GET("/categories/:id", categoryHandler.GetByID)
+
+	e.GET("/lessons", lessonHandler.GetAll)       // <--- YENİ (Dersleri Listele)
+	e.GET("/lessons/:id", lessonHandler.GetByID)  // <--- YENİ (Ders Detayı)
 
 	// ---------------------------------------------------------
 	// 5. PROTECTED ROUTES (Token Zorunlu - Kilitli Alan)
@@ -84,17 +92,24 @@ func main() {
 	}
 	r.Use(echojwt.WithConfig(config))
 
-	// A. Genel Korumalı Rotalar (Profil tamamlama vs.)
+	// A. Genel Korumalı Rotalar
 	r.PUT("/complete-profile", userHandler.CompleteProfile)
 
-	// B. Kategori Yönetimi (Sadece giriş yapmış kullanıcılar ekleyebilir/düzenleyebilir)
-	// Not: İleride buraya "AdminMiddleware" eklenebilir.
-	r.POST("/categories", categoryHandler.Create)       // <--- YENİ
-	r.PUT("/categories/:id", categoryHandler.Update)    // <--- YENİ
-	r.DELETE("/categories/:id", categoryHandler.Delete) // <--- YENİ
+	// B. İçerik Yönetimi (Sadece giriş yapmış kullanıcılar)
+	// Not: Gerçek senaryoda Admin rolü gerekir.
+	
+	// Kategori Yönetimi
+	r.POST("/categories", categoryHandler.Create)
+	r.PUT("/categories/:id", categoryHandler.Update)
+	r.DELETE("/categories/:id", categoryHandler.Delete)
+
+	// Ders Yönetimi (YENİ EKLENDİ)
+	r.POST("/lessons", lessonHandler.Create)
+	r.PUT("/lessons/:id", lessonHandler.Update)
+	r.DELETE("/lessons/:id", lessonHandler.Delete)
 
 	// C. Tam Profil Gerektiren Rotalar (Secure Group)
-	// Bu gruba erişmek için hem Token lazım hem de Şehir/Üni dolu olmalı.
+	// Bu gruba erişmek için hem Token lazım hem de Profil (Şehir/Üni) dolu olmalı.
 	secureGroup := r.Group("/secure")
 	secureGroup.Use(middleware.ProfileCompletionMiddleware(userRepo))
 

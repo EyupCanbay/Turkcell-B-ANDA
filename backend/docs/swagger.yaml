@@ -18,6 +18,44 @@ definitions:
     required:
     - name
     type: object
+  domain.CreateLessonRequest:
+    properties:
+      category_id:
+        type: integer
+      difficulty:
+        enum:
+        - Easy
+        - Medium
+        - Hard
+        type: string
+      duration_min:
+        type: integer
+      title:
+        type: string
+      video_url:
+        type: string
+    required:
+    - category_id
+    - title
+    type: object
+  domain.LessonResponse:
+    properties:
+      category_id:
+        type: integer
+      category_name:
+        description: İlişkili veri
+        type: string
+      difficulty:
+        type: string
+      duration_min:
+        type: integer
+      id:
+        type: integer
+      title:
+        type: string
+      video_url:
+        type: string
+    type: object
   domain.LoginRequest:
     properties:
       email:
@@ -47,6 +85,17 @@ definitions:
       description:
         type: string
       name:
+        type: string
+    type: object
+  domain.UpdateLessonRequest:
+    properties:
+      difficulty:
+        type: string
+      duration_min:
+        type: integer
+      title:
+        type: string
+      video_url:
         type: string
     type: object
   domain.UpdateProfileRequest:
@@ -210,6 +259,96 @@ paths:
       summary: Profil Tamamlama
       tags:
       - User
+  /api/lessons:
+    post:
+      consumes:
+      - application/json
+      description: Bir kategoriye bağlı yeni ders ekler.
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Ders Bilgileri
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateLessonRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Ders oluşturuldu
+          schema:
+            type: string
+        "400":
+          description: Hatalı veri
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Yeni Ders Ekle
+      tags:
+      - Lessons
+  /api/lessons/{id}:
+    delete:
+      description: Dersi silinmiş olarak işaretler.
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Ders ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: Ders silindi
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Ders Sil (Soft Delete)
+      tags:
+      - Lessons
+    put:
+      consumes:
+      - application/json
+      description: Var olan bir dersi günceller.
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Ders ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Güncelleme Bilgileri
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateLessonRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ders güncellendi
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Ders Güncelle
+      tags:
+      - Lessons
   /api/secure/me:
     delete:
       consumes:
@@ -305,6 +444,40 @@ paths:
       summary: ID ile Kategori Getir
       tags:
       - Categories
+  /lessons:
+    get:
+      description: Sistemdeki tüm dersleri getirir.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.LessonResponse'
+            type: array
+      summary: Tüm Dersleri Listele
+      tags:
+      - Lessons
+  /lessons/{id}:
+    get:
+      description: Belirtilen ID'ye sahip dersi döner.
+      parameters:
+      - description: Ders ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.LessonResponse'
+      summary: ID ile Ders Getir
+      tags:
+      - Lessons
   /login:
     post:
       consumes:
