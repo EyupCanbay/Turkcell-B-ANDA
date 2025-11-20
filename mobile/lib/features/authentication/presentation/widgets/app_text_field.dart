@@ -1,66 +1,55 @@
+import 'package:bi_anda/core/di/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
-class AppTextField extends StatelessWidget {
-  final String label;
-  final TextEditingController controller;
-  final IconData icon;
-  final bool obscureText;
-  final TextInputType keyboardType;
+class AppTextField extends StatefulWidget {
+  final String hint;
+  final IconData? prefixIcon;
+  final bool isPassword;
+  final Function(String)? onChanged;
 
   const AppTextField({
     super.key,
-    required this.label,
-    required this.controller,
-    required this.icon,
-    this.obscureText = false,
-    this.keyboardType = TextInputType.text,
+    required this.hint,
+    this.prefixIcon,
+    this.onChanged,
+    this.isPassword = false,
   });
 
   @override
+  State<AppTextField> createState() => _AppTextFieldState();
+}
+
+class _AppTextFieldState extends State<AppTextField> {
+  bool _obscure = true;
+
+  @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF002B5C),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          height: 56,
-          decoration: BoxDecoration(
-            color: const Color(0xFFF5F7F8),
-            borderRadius: BorderRadius.circular(100),
-            border: Border.all(color: Colors.grey.shade300),
-          ),
-          child: Row(
-            children: [
-              const SizedBox(width: 16),
-              Icon(icon, color: const Color(0xFF002B5C)),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextField(
-                  controller: controller,
-                  obscureText: obscureText,
-                  keyboardType: keyboardType,
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    hintText: "",
-                  ),
-                  style: const TextStyle(
-                    color: Color(0xFF002B5C),
-                  ),
+    return TextField(
+      obscureText: widget.isPassword ? _obscure : false,
+      onChanged: widget.onChanged,
+      decoration: InputDecoration(
+        hintText: widget.hint,
+        filled: true,
+        fillColor: const Color(0xFFF5F5F5),
+        prefixIcon: widget.prefixIcon != null
+            ? Icon(widget.prefixIcon, color: AppColors.darkNavy)
+            : null,
+        suffixIcon: widget.isPassword
+            ? IconButton(
+                icon: Icon(
+                  _obscure ? Icons.visibility_off : Icons.visibility,
+                  color: AppColors.darkNavy,
                 ),
-              ),
-              const SizedBox(width: 16),
-            ],
-          ),
+                onPressed: () => setState(() => _obscure = !_obscure),
+              )
+            : null,
+        contentPadding:
+            const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(50),
+          borderSide: BorderSide.none,
         ),
-      ],
+      ),
     );
   }
 }

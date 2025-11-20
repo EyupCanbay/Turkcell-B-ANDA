@@ -83,7 +83,7 @@ func main() {
 	e.GET("/lessons", lessonHandler.GetAll)
 	e.GET("/lessons/:id", lessonHandler.GetByID)
 
-	e.GET("/lessons/:lesson_id/questions", quizHandler.GetQuestions) // <--- YENİ
+	e.GET("/lessons/:lesson_id/questions", quizHandler.GetQuestions)
 
 	r := e.Group("/api")
 
