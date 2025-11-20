@@ -1,0 +1,222 @@
+basePath: /
+definitions:
+  domain.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  domain.RegisterRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        minLength: 6
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  domain.UpdateProfileRequest:
+    properties:
+      city:
+        type: string
+      skill_level:
+        type: string
+      university:
+        type: string
+    required:
+    - city
+    - skill_level
+    - university
+    type: object
+  domain.UserResponse:
+    properties:
+      city:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@skillhub.com
+    name: API Destek
+    url: http://www.skillhub.com
+  description: Turkcell SkillHub projesi için Backend API dokümantasyonu.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: SkillHub API
+  version: "1.0"
+paths:
+  /api/complete-profile:
+    put:
+      consumes:
+      - application/json
+      description: Eksik olan şehir, üniversite ve yetenek bilgilerini günceller.
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Profil Bilgileri
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profil güncellendi
+          schema:
+            type: string
+        "400":
+          description: Eksik parametreler
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Profil Tamamlama
+      tags:
+      - User
+  /api/secure/me:
+    delete:
+      consumes:
+      - application/json
+      description: Kullanıcı hesabını silinmiş olarak işaretler.
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Hesabınız silindi
+          schema:
+            type: string
+        "500":
+          description: Silme başarısız
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Hesabı Sil (Soft Delete)
+      tags:
+      - User
+    get:
+      consumes:
+      - application/json
+      description: Giriş yapmış kullanıcının detaylarını döner.
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.UserResponse'
+        "401":
+          description: Yetkisiz işlem
+          schema:
+            type: string
+        "406":
+          description: Profil eksik (Tamamlanmalı)
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Profil Bilgilerini Getir
+      tags:
+      - User
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Email ve şifre ile giriş yapar, JWT Token döner.
+      parameters:
+      - description: Giriş Bilgileri
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Geçersiz veri
+          schema:
+            type: string
+        "401":
+          description: Giriş başarısız
+          schema:
+            type: string
+      summary: Giriş Yap
+      tags:
+      - Auth
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Sisteme yeni bir kullanıcı ekler.
+      parameters:
+      - description: Kayıt Bilgileri
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Kayıt başarılı
+          schema:
+            type: string
+        "400":
+          description: Hatalı veri
+          schema:
+            type: string
+        "409":
+          description: Bu email zaten kullanımda
+          schema:
+            type: string
+      summary: Yeni Kullanıcı Kaydı
+      tags:
+      - Auth
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
