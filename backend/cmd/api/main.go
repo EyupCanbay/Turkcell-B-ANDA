@@ -9,7 +9,9 @@ import (
 	"skillhub-backend/internal/service"
 	"skillhub-backend/pkg/utils"
 
-	_ "skillhub-backend/docs" // Swagger docs (swag init ile oluşacak)
+	emw "github.com/labstack/echo/v4/middleware" // Echo middleware (alias verildi)
+
+	_ "skillhub-backend/docs" // Swagger docs
 
 	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
@@ -35,87 +37,100 @@ import (
 // @in header
 // @name Authorization
 func main() {
-	// 1. DB Bağlantısı (PostgreSQL)
+
+	// 1. DB Bağlantısı
 	db := config.ConnectDB()
 
-	// Auto Migrate (Tabloları oluştur)
-	// User, Category ve Lesson tablolarını garantiye alıyoruz.
+	// Tablolar
 	db.AutoMigrate(&domain.User{}, &domain.Category{}, &domain.Lesson{})
 
-	// 2. Dependency Injection (Bağımlılıkları Bağlama)
-	
-	// --- USER MODÜLÜ ---
+	// -------------------------------
+	// 2. Dependency Injection
+	// -------------------------------
+
+	// USER
 	userRepo := repository.NewUserRepository(db)
 	authService := service.NewAuthService(userRepo)
 	userService := service.NewUserService(userRepo)
 	userHandler := handler.NewUserHandler(authService, userService)
 
-	// --- CATEGORY MODÜLÜ ---
+	// CATEGORY
 	categoryRepo := repository.NewCategoryRepository(db)
 	categoryService := service.NewCategoryService(categoryRepo)
 	categoryHandler := handler.NewCategoryHandler(categoryService)
 
-	// --- LESSON MODÜLÜ (YENİ EKLENDİ) ---
+	// LESSON
 	lessonRepo := repository.NewLessonRepository(db)
 	lessonService := service.NewLessonService(lessonRepo)
 	lessonHandler := handler.NewLessonHandler(lessonService)
 
+	// -------------------------------
 	// 3. Echo Setup
+	// -------------------------------
 	e := echo.New()
 
-	// Swagger Endpoint
+	// CORS Middleware
+	e.Use(emw.CORSWithConfig(emw.CORSConfig{
+		AllowOrigins: []string{"*"}, // Her yerden gelen isteği kabul et
+		AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE},
+		AllowHeaders: []string{
+			echo.HeaderOrigin,
+			echo.HeaderContentType,
+			echo.HeaderAccept,
+			echo.HeaderAuthorization,
+		},
+	}))
+
+	// Swagger
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
-	// ---------------------------------------------------------
-	// 4. PUBLIC ROUTES (Token Gerekmez - Herkese Açık)
-	// ---------------------------------------------------------
-	
-	// Auth İşlemleri
+	// -------------------------------
+	// 4. PUBLIC ROUTES
+	// -------------------------------
 	e.POST("/register", userHandler.Register)
 	e.POST("/login", userHandler.Login)
 
-	// Katalog (Kategoriler ve Dersler herkes tarafından görülebilir)
 	e.GET("/categories", categoryHandler.GetAll)
 	e.GET("/categories/:id", categoryHandler.GetByID)
 
-	e.GET("/lessons", lessonHandler.GetAll)       // <--- YENİ (Dersleri Listele)
-	e.GET("/lessons/:id", lessonHandler.GetByID)  // <--- YENİ (Ders Detayı)
+	e.GET("/lessons", lessonHandler.GetAll)
+	e.GET("/lessons/:id", lessonHandler.GetByID)
 
-	// ---------------------------------------------------------
-	// 5. PROTECTED ROUTES (Token Zorunlu - Kilitli Alan)
-	// ---------------------------------------------------------
+	// -------------------------------
+	// 5. PROTECTED ROUTES
+	// -------------------------------
 	r := e.Group("/api")
 
-	// JWT Middleware Ayarı
-	config := echojwt.Config{
-		SigningKey: utils.JWTSecret, // utils paketindeki gizli anahtar
+	// JWT Ayarı
+	jwtConfig := echojwt.Config{
+		SigningKey: utils.JWTSecret,
 	}
-	r.Use(echojwt.WithConfig(config))
+	r.Use(echojwt.WithConfig(jwtConfig))
 
-	// A. Genel Korumalı Rotalar
+	// Genel korumalı
 	r.PUT("/complete-profile", userHandler.CompleteProfile)
 
-	// B. İçerik Yönetimi (Sadece giriş yapmış kullanıcılar)
-	// Not: Gerçek senaryoda Admin rolü gerekir.
-	
-	// Kategori Yönetimi
+	// CATEGORY Yönetimi
 	r.POST("/categories", categoryHandler.Create)
 	r.PUT("/categories/:id", categoryHandler.Update)
 	r.DELETE("/categories/:id", categoryHandler.Delete)
 
-	// Ders Yönetimi (YENİ EKLENDİ)
+	// LESSON Yönetimi
 	r.POST("/lessons", lessonHandler.Create)
 	r.PUT("/lessons/:id", lessonHandler.Update)
 	r.DELETE("/lessons/:id", lessonHandler.Delete)
 
-	// C. Tam Profil Gerektiren Rotalar (Secure Group)
-	// Bu gruba erişmek için hem Token lazım hem de Profil (Şehir/Üni) dolu olmalı.
+	// -------------------------------
+	// 6. SECURE ROUTES (Tam Profil Şart)
+	// -------------------------------
 	secureGroup := r.Group("/secure")
 	secureGroup.Use(middleware.ProfileCompletionMiddleware(userRepo))
 
 	secureGroup.GET("/me", userHandler.GetProfile)
 	secureGroup.DELETE("/me", userHandler.DeleteUser)
 
-	// Sunucuyu Başlat
-	e.Logger.Fatal(e.Start(":8080"))
+	// -------------------------------
+	// 7. Server Başlat
+	// -------------------------------
+	e.Logger.Fatal(e.Start("0.0.0.0:8080"))
 }

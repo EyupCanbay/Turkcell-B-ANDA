@@ -1,211 +1,207 @@
+import 'package:bi_anda/core/common/widgets/app_snackbar.dart';
+import 'package:bi_anda/core/di/theme/app_colors.dart';
+import 'package:bi_anda/features/authentication/presentation/bloc/register_bloc.dart';
+import 'package:bi_anda/features/authentication/presentation/bloc/register_event.dart';
+import 'package:bi_anda/features/authentication/presentation/bloc/register_state.dart';
+import 'package:bi_anda/features/authentication/presentation/widgets/app_button.dart';
+import 'package:bi_anda/features/authentication/presentation/widgets/app_text_field.dart';
+import 'package:bi_anda/features/authentication/presentation/widgets/app_text_styles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../bloc/register_bloc.dart';
-import '../bloc/register_event.dart';
-import '../bloc/register_state.dart';
-import '../widgets/app_text_field.dart';
+
+import 'login_page.dart';
 
 class RegisterPage extends StatelessWidget {
   const RegisterPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final fullNameCtrl = TextEditingController();
-    final emailCtrl = TextEditingController();
-    final passwordCtrl = TextEditingController();
-
     return BlocProvider(
       create: (_) => RegisterBloc(),
-      child: Scaffold(
-        backgroundColor: const Color(0xFFE9ECF0),
-        body: Stack(
-          children: [
-            // Yellow background with ellipse effect
-            Positioned(
-              top: -150,
-              left: 0,
-              right: 0,
-              child: Container(
-                height: 450,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFFFD500),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.elliptical(600, 200),
-                    bottomRight: Radius.elliptical(600, 200),
+      child: const _RegisterView(),
+    );
+  }
+}
+
+class _RegisterView extends StatelessWidget {
+  const _RegisterView();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFE9ECF0),
+      body: SafeArea(
+        child: BlocConsumer<RegisterBloc, RegisterState>(
+          listener: (context, state) {
+            if (state.isSuccess) {
+              AppSnackBar.showSuccess(context, "Kayıt başarılı!");
+              Future.delayed(const Duration(milliseconds: 500), () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginPage()),
+                );
+              });
+            }
+
+            if (state.errorMessage != null) {
+              AppSnackBar.showError(context, state.errorMessage!);
+            }
+          },
+          builder: (context, state) {
+            final bloc = context.read<RegisterBloc>();
+
+            return Stack(
+              children: [
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  left: 0,
+                  height: MediaQuery.of(context).size.height * 0.55,
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: AppColors.turkcellYellow,
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.elliptical(500, 180),
+                        bottomRight: Radius.elliptical(500, 180),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-
-            // MAIN CONTENT
-            SafeArea(
-              child: Center(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // LOGO
-                      Container(
-                        height: 110,
-                        width: 110,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(100),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.08),
-                              blurRadius: 15,
-                              offset: const Offset(0, 4),
-                            )
-                          ],
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(10),
-                          child: Image.asset("assets/images/turkcell_logo.png"),
-                        ),
-                      ),
-
-                      const SizedBox(height: 32),
-
-                      // CARD
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.08),
-                              blurRadius: 15,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          children: [
-                            const Text(
-                              "Kaydol",
-                              style: TextStyle(
-                                color: Color(0xFF002B5C),
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              "Yeni bir hesap oluştur",
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 16,
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-
-                            // FORM FIELDS
-                            AppTextField(
-                              label: "İsim Soyisim",
-                              controller: fullNameCtrl,
-                              icon: Icons.person,
-                            ),
-                            const SizedBox(height: 16),
-
-                            AppTextField(
-                              label: "Email",
-                              controller: emailCtrl,
-                              icon: Icons.mail,
-                              keyboardType: TextInputType.emailAddress,
-                            ),
-                            const SizedBox(height: 16),
-
-                            AppTextField(
-                              label: "Şifre",
-                              controller: passwordCtrl,
-                              icon: Icons.lock,
-                              obscureText: true,
-                            ),
-                            const SizedBox(height: 24),
-
-                            // BUTTON
-                            BlocBuilder<RegisterBloc, RegisterState>(
-                              builder: (context, state) {
-                                return SizedBox(
-                                  width: double.infinity,
-                                  height: 56,
-                                  child: ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF002B5C),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(100),
-                                      ),
-                                    ),
-                                    onPressed: () {
-                                      context.read<RegisterBloc>().add(
-                                          RegisterFullNameChanged(
-                                              fullNameCtrl.text));
-                                      context.read<RegisterBloc>().add(
-                                          RegisterEmailChanged(emailCtrl.text));
-                                      context.read<RegisterBloc>().add(
-                                          RegisterPasswordChanged(
-                                              passwordCtrl.text));
-                                      context
-                                          .read<RegisterBloc>()
-                                          .add(SubmitRegister());
-                                    },
-                                    child: state.isLoading
-                                        ? const CircularProgressIndicator(
-                                            color: Colors.white,
-                                          )
-                                        : const Text(
-                                            "Kaydol",
-                                            style: TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      // LOGIN REDIRECT
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
-                            "Hesabın var mı? ",
-                            style: TextStyle(
-                              color: Color(0xFF002B5C),
-                              fontSize: 16,
-                            ),
-                          ),
-                          GestureDetector(
-                            onTap: () => Navigator.pushNamed(context, "/login"),
-                            child: const Text(
-                              "Giriş Yap",
-                              style: TextStyle(
-                                color: Color(0xFF0077C8),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 40),
+                    child: Container(
+                      height: 120,
+                      width: 120,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            blurRadius: 12,
+                            color: Colors.black.withOpacity(0.1),
                           ),
                         ],
                       ),
-                    ],
+                      child: Image.network(
+                        "https://lh3.googleusercontent.com/aida-public/AB6AXuBZ1GvO-NeEiYlCIaEoHEDQ4xaomNCu9C2FgbSsLbGVvaaYUEWDBJSNswmPkG9S9LQBWBaZeVKF7lZGcG-Wn1AxzhRXjIUkUIi9tSoKn_uxMfaFfoNrpR0GDWzSxdko-fRWYtUFMEZ_AHojK-NWF7_V0IMDvKFLedF0dBwly6hJ_OuoyrjMzBTMwedUs2i81u3bEnY-hmzunUTQIqBOR4Y1nP0Uf0BhQRAFyDeKF-VmpFO2IgCsvNXA0yR5AaYcQummmNXNSnaJHM4",
+                        fit: BoxFit.contain,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-          ],
+                Align(
+                  alignment: Alignment.center,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(24),
+                    child: Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(18),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.08),
+                            blurRadius: 12,
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Center(
+                            child: Column(
+                              children: [
+                                Text(
+                                  "Kaydol",
+                                  style: AppTextStyles.titleLarge
+                                      .copyWith(color: AppColors.darkNavy),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  "Yeni bir hesap oluştur",
+                                  style: AppTextStyles.bodyMedium.copyWith(
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 28),
+                          Text("İsim Soyisim", style: AppTextStyles.label),
+                          const SizedBox(height: 6),
+                          AppTextField(
+                            hint: "Adını ve soyadını yaz",
+                            prefixIcon: Icons.person,
+                            onChanged: (v) =>
+                                bloc.add(RegisterFullNameChanged(v)),
+                          ),
+                          const SizedBox(height: 16),
+                          Text("Email", style: AppTextStyles.label),
+                          const SizedBox(height: 6),
+                          AppTextField(
+                            hint: "email@adresin.com",
+                            prefixIcon: Icons.mail,
+                            onChanged: (v) => bloc.add(RegisterEmailChanged(v)),
+                          ),
+                          const SizedBox(height: 16),
+                          Text("Şifre", style: AppTextStyles.label),
+                          const SizedBox(height: 6),
+                          AppTextField(
+                            hint: "••••••••",
+                            prefixIcon: Icons.lock,
+                            isPassword: true,
+                            onChanged: (v) =>
+                                bloc.add(RegisterPasswordChanged(v)),
+                          ),
+                          const SizedBox(height: 24),
+                          AppButton(
+                            text: "Kaydol",
+                            isLoading: state.isLoading,
+                            onPressed: () {
+                              bloc.add(SubmitRegister());
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 20),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Hesabın var mı? ",
+                          style: AppTextStyles.bodyMedium
+                              .copyWith(color: AppColors.darkNavy),
+                        ),
+                        GestureDetector(
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const LoginPage()),
+                          ),
+                          child: Text(
+                            "Giriş Yap",
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: AppColors.turkcellBlue,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
