@@ -1,9 +1,11 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"skillhub-backend/internal/domain"
 	"strconv"
+
 	"github.com/labstack/echo/v4"
 )
 
@@ -25,19 +27,20 @@ func NewLeaderboardHandler(service domain.LeaderboardService) *LeaderboardHandle
 // @Success 200 {array} domain.LeaderboardResponse
 // @Router /leaderboard [get]
 func (h *LeaderboardHandler) GetTopUsers(c echo.Context) error {
-	// 1. Limit parametresini al (Default: 10)
 	limit, _ := strconv.Atoi(c.QueryParam("limit"))
 	if limit <= 0 {
 		limit = 10
 	}
-
-	// 2. Şehir parametresini al (Opsiyonel)
 	city := c.QueryParam("city")
 
-	// 3. Servisi çağır
 	leaderboard, err := h.Service.GetLeaderboard(limit, city)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, "Veri çekilemedi")
+		// HATA DETAYINI KONSOLA VE EKRANA BASALIM
+		fmt.Println("❌ LİDERLİK HATASI:", err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"message": "Veri çekilemedi",
+			"error":   err.Error(), // Gerçek hatayı burada göreceğiz
+		})
 	}
 
 	return c.JSON(http.StatusOK, leaderboard)
