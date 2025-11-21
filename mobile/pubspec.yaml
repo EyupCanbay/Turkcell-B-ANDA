@@ -20,6 +20,8 @@ dependencies:
   get_it: ^9.0.5
   flutter_secure_storage: ^9.2.4
   dio: ^5.9.0
+  video_player: ^2.10.0
+  chewie: ^1.11.3
 
 dev_dependencies:
   flutter_test:
