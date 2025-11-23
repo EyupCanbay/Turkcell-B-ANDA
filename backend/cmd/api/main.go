@@ -45,6 +45,7 @@ func main() {
 		&domain.Lesson{},
 		&domain.QuizQuestion{},
 		&domain.QuizResult{},
+		&domain.Leaderboard{},
 	)
 
 	userRepo := repository.NewUserRepository(db)
@@ -64,10 +65,14 @@ func main() {
 	quizService := service.NewQuizService(quizRepo)
 	quizHandler := handler.NewQuizHandler(quizService)
 
+	leaderboardRepo := repository.NewLeaderboardRepository(db)
+	leaderboardService := service.NewLeaderboardService(leaderboardRepo)
+	leaderboardHandler := handler.NewLeaderboardHandler(leaderboardService)
+
 	e := echo.New()
 
 	e.Use(middlewareEcho.CORSWithConfig(middlewareEcho.CORSConfig{
-		AllowOrigins: []string{"*"}, // "*" = Her yerden gelen isteği kabul et
+		AllowOrigins: []string{"*"},
 		AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
 	}))
@@ -85,6 +90,8 @@ func main() {
 
 	e.GET("/lessons/:lesson_id/questions", quizHandler.GetQuestions)
 
+	e.GET("/leaderboard", leaderboardHandler.GetTopUsers)
+
 	r := e.Group("/api")
 
 	config := echojwt.Config{
@@ -94,17 +101,14 @@ func main() {
 
 	r.PUT("/complete-profile", userHandler.CompleteProfile)
 
-	// Kategori
 	r.POST("/categories", categoryHandler.Create)
 	r.PUT("/categories/:id", categoryHandler.Update)
 	r.DELETE("/categories/:id", categoryHandler.Delete)
 
-	// Ders
 	r.POST("/lessons", lessonHandler.Create)
 	r.PUT("/lessons/:id", lessonHandler.Update)
 	r.DELETE("/lessons/:id", lessonHandler.Delete)
 
-	// Quiz & Soru Yönetimi
 	r.POST("/questions", quizHandler.CreateQuestion)
 	r.POST("/lessons/:lesson_id/submit", quizHandler.Submit)
 
