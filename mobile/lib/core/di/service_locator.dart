@@ -6,6 +6,10 @@ import 'package:bi_anda/features/authentication/domain/usecases/delete_account_u
 import 'package:bi_anda/features/authentication/domain/usecases/get_profile.dart';
 import 'package:bi_anda/features/authentication/domain/usecases/login_usecase.dart';
 import 'package:bi_anda/features/authentication/domain/usecases/register_usecase.dart';
+import 'package:bi_anda/features/course_detail/data/datasources/course_detail_remote_data_source.dart';
+import 'package:bi_anda/features/course_detail/data/repository/course_detail_repository_impl.dart';
+import 'package:bi_anda/features/course_detail/domain/repository/course_detail_repository.dart';
+import 'package:bi_anda/features/course_detail/domain/usecases/get_course_detail_usecase.dart';
 import 'package:bi_anda/features/home/data/datasources/home_remote_data_source.dart';
 import 'package:bi_anda/features/home/data/repository/home_repository_impl.dart';
 import 'package:bi_anda/features/home/domain/repository/home_repository.dart';
@@ -116,5 +120,22 @@ Future<void> setupLocator() async {
 
   getIt.registerLazySingleton<GetLessonsUseCase>(
     () => GetLessonsUseCase(getIt<HomeRepository>()),
+  );
+
+  //course detail
+
+  // DataSource
+  getIt.registerLazySingleton<CourseDetailRemoteDataSource>(
+    () => CourseDetailRemoteDataSourceImpl(getIt<Dio>()),
+  );
+
+// Repository
+  getIt.registerLazySingleton<CourseDetailRepository>(
+    () => CourseDetailRepositoryImpl(getIt<CourseDetailRemoteDataSource>()),
+  );
+
+// UseCase
+  getIt.registerLazySingleton<GetCourseDetailUseCase>(
+    () => GetCourseDetailUseCase(getIt<CourseDetailRepository>()),
   );
 }
