@@ -10,8 +10,8 @@ class LoginState extends Equatable {
   final String? errorMessage;
 
   const LoginState({
-    this.email = "",
-    this.password = "",
+    this.email = '',
+    this.password = '',
     this.isLoading = false,
     this.isSuccess = false,
     this.token,

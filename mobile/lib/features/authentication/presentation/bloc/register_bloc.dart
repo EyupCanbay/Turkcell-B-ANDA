@@ -1,11 +1,15 @@
+import 'package:bi_anda/features/authentication/domain/usecases/register_usecase.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:equatable/equatable.dart';
 import 'register_event.dart';
 import 'register_state.dart';
 
 class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
-  RegisterBloc() : super(const RegisterState()) {
-    on<RegisterFullNameChanged>((event, emit) {
-      emit(state.copyWith(fullName: event.fullName));
+  final RegisterUseCase registerUseCase;
+
+  RegisterBloc(this.registerUseCase) : super(const RegisterState()) {
+    on<RegisterNameChanged>((event, emit) {
+      emit(state.copyWith(name: event.name));
     });
 
     on<RegisterEmailChanged>((event, emit) {
@@ -17,12 +21,44 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
     });
 
     on<SubmitRegister>((event, emit) async {
-      emit(state.copyWith(isLoading: true));
+      // Basit validation
+      if (state.name.trim().isEmpty ||
+          state.email.trim().isEmpty ||
+          state.password.trim().isEmpty) {
+        emit(state.copyWith(
+          errorMessage: "Tüm alanlar zorunludur.",
+          isLoading: false,
+          isSuccess: false,
+        ));
+        return;
+      }
 
-      // TODO: implement API call using repository
-      await Future.delayed(const Duration(seconds: 1)); // simulating call
+      emit(state.copyWith(
+        isLoading: true,
+        errorMessage: null,
+        isSuccess: false,
+      ));
 
-      emit(state.copyWith(isLoading: false, isSuccess: true));
+      try {
+        // 🔥 BURADA GERÇEK API ÇAĞRISI YAPILIYOR
+        final message = await registerUseCase(
+          state.name.trim(),
+          state.email.trim(),
+          state.password.trim(),
+        );
+
+        emit(state.copyWith(
+          isLoading: false,
+          isSuccess: true,
+          successMessage: message,
+        ));
+      } catch (e) {
+        emit(state.copyWith(
+          isLoading: false,
+          isSuccess: false,
+          errorMessage: e.toString().replaceAll("Exception: ", ""),
+        ));
+      }
     });
   }
 }

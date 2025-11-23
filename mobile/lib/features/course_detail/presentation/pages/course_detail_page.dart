@@ -43,9 +43,9 @@ class _CourseDetailBody extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const CdTopCard(),
-                CdVideoPlayer(videoUrl: "test" //TODO
-                    ),
+                // const CdTopCard(),
+                // CdVideoPlayer(videoUrl: "test" //TODO
+                //     ),
                 const CdLessonInfo(),
                 const CdDescriptionCard(),
                 CdQuizCard(

@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
-import 'main_navigation.dart';
+import 'core/di/service_locator.dart';
+import 'routes.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await setupLocator();
+
   runApp(const MyApp());
 }
 
@@ -12,7 +16,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const MainNavigationPage(),
+      initialRoute: Routes.login,
+      onGenerateRoute: Routes.onGenerateRoute,
     );
   }
 }

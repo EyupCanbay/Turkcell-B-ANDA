@@ -1,4 +1,4 @@
-import 'package:bi_anda/core/di/theme/app_colors.dart';
+import 'package:bi_anda/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class AppTextStyles {

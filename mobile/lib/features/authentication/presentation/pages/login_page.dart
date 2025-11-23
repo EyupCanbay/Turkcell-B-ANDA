@@ -1,5 +1,5 @@
 import 'package:bi_anda/core/common/widgets/app_snackbar.dart';
-import 'package:bi_anda/core/di/theme/app_colors.dart';
+import 'package:bi_anda/core/theme/app_colors.dart';
 import 'package:bi_anda/features/authentication/presentation/bloc/login_bloc.dart';
 import 'package:bi_anda/features/authentication/presentation/bloc/login_event.dart';
 import 'package:bi_anda/features/authentication/presentation/bloc/login_state.dart';
@@ -82,8 +82,8 @@ class _LoginView extends StatelessWidget {
                           )
                         ],
                       ),
-                      child: Image.network(
-                        "https://lh3.googleusercontent.com/aida-public/AB6AXuAMVkfMq_ef4gAVaRe9tRJivxYbWmKOJZmuplEfsjHgDOEC8qmXKbYII1p8WHlcqRWCo8_2j_AU4AxTyLzYxjhqr-lXOAGK16tLCRtHrqOTtRYT46BzxuCae4PCctPa2RkJGO5K5Vqj0ZeIZdW2UMwBP1ibNnCAe_6M9iYzs6JvEUWhd7dd5fAZyMYdX70DX0rSLqa4zq_iIVxsFBoZPeLavx20pmg7L55SGRrd_amDLlt9X2l7L0XsvbNDCM0ASOs-z2_J9nmpDkw",
+                      child: Image.asset(
+                        "assets/images/turkcell_logo_rm.png",
                         fit: BoxFit.contain,
                       ),
                     ),
@@ -134,7 +134,9 @@ class _LoginView extends StatelessWidget {
                           AppTextField(
                             hint: "email@adresin.com",
                             prefixIcon: Icons.mail,
-                            onChanged: (v) => bloc.add(LoginEmailChanged(v)),
+                            onChanged: (v) => context
+                                .read<LoginBloc>()
+                                .add(LoginEmailChanged(email: v)),
                           ),
                           const SizedBox(height: 16),
                           Text(
@@ -146,7 +148,9 @@ class _LoginView extends StatelessWidget {
                             hint: "••••••••",
                             isPassword: true,
                             prefixIcon: Icons.lock,
-                            onChanged: (v) => bloc.add(LoginPasswordChanged(v)),
+                            onChanged: (v) => context
+                                .read<LoginBloc>()
+                                .add(LoginPasswordChanged(password: v)),
                           ),
                           const SizedBox(height: 12),
                           Align(

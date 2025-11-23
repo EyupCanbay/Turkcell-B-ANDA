@@ -114,5 +114,5 @@ func main() {
 	secureGroup.GET("/me", userHandler.GetProfile)
 	secureGroup.DELETE("/me", userHandler.DeleteUser)
 
-	e.Logger.Fatal(e.Start(":8080"))
+	e.Logger.Fatal(e.Start("0.0.0.0:8080"))
 }

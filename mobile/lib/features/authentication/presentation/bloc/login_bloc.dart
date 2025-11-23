@@ -1,29 +1,41 @@
-import 'package:bi_anda/features/authentication/domain/usecases/login_usecase.dart';
-import 'package:bi_anda/features/authentication/presentation/bloc/login_event.dart';
-import 'package:bi_anda/features/authentication/presentation/bloc/login_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'login_event.dart';
+import 'login_state.dart';
+import 'package:bi_anda/features/authentication/domain/usecases/login_usecase.dart';
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
   final LoginUseCase loginUseCase;
 
   LoginBloc(this.loginUseCase) : super(const LoginState()) {
-    /// Email değişti
+    // 🔹 Email değişimi
     on<LoginEmailChanged>((event, emit) {
-      emit(state.copyWith(email: event.email));
+      emit(state.copyWith(email: event.email, errorMessage: null));
     });
 
-    /// Şifre değişti
+    // 🔹 Şifre değişimi  ✅ BURASI YOKSA O HATAYI ALIRSIN
     on<LoginPasswordChanged>((event, emit) {
-      emit(state.copyWith(password: event.password));
+      emit(state.copyWith(password: event.password, errorMessage: null));
     });
 
-    /// Login butonuna tıklandı
+    // 🔹 Login butonu
     on<SubmitLogin>((event, emit) async {
-      emit(state.copyWith(isLoading: true, errorMessage: null));
+      if (state.email.trim().isEmpty || state.password.trim().isEmpty) {
+        emit(state.copyWith(
+          errorMessage: "Email ve şifre zorunlu",
+          isLoading: false,
+        ));
+        return;
+      }
+
+      emit(state.copyWith(
+          isLoading: true, errorMessage: null, isSuccess: false));
 
       try {
-        final token =
-            await loginUseCase(state.email.trim(), state.password.trim());
+        final token = await loginUseCase(
+          state.email.trim(),
+          state.password.trim(),
+        );
 
         emit(state.copyWith(
           isLoading: false,
@@ -33,7 +45,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       } catch (e) {
         emit(state.copyWith(
           isLoading: false,
-          errorMessage: "Giriş başarısız: ${e.toString()}",
+          errorMessage: e.toString().replaceAll('Exception: ', ''),
         ));
       }
     });

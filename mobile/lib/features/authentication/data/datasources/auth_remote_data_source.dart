@@ -35,12 +35,17 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required this.storage,
   });
 
+  // ---------------------------------------------------------------------------
+  // REGISTER
+  // ---------------------------------------------------------------------------
   @override
   Future<String> register({
     required String name,
     required String email,
     required String password,
   }) async {
+    print("AuthRemoteDataSource.register ÇAĞRILDI: $name, $email");
+
     final response = await dio.post(
       '/register',
       data: {
@@ -49,63 +54,114 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         'password': password,
       },
     );
-    print(name + email + password);
-    // Swagger: 201 + string body ("Kayıt başarılı" vs.)
-    return response.data.toString();
+
+    if (response.statusCode == 201) {
+      return response.data.toString();
+    }
+
+    throw Exception("Beklenmeyen yanıt: ${response.statusCode}");
   }
 
+  // ---------------------------------------------------------------------------
+  // LOGIN
+  // ---------------------------------------------------------------------------
   @override
   Future<String> login({
     required String email,
     required String password,
   }) async {
-    final response = await dio.post(
-      '/login',
-      data: {
-        'email': email,
-        'password': password,
-      },
-    );
+    try {
+      final response = await dio.post(
+        '/login',
+        data: {
+          'email': email,
+          'password': password,
+        },
+      );
 
-    // Swagger: 200, body: object<string,string>
-    // Backend ile "token" key ismi üzerinde anlaşmak en temizi
-    final data = response.data as Map<String, dynamic>;
-    final token = data['token'] as String? ??
-        data['access_token'] as String? ??
-        data.values.first as String; // fallback
+      if (response.statusCode == 200) {
+        final data = response.data as Map<String, dynamic>;
 
-    await storage.write(key: 'token', value: token);
+        /// Swagger dönüşü:
+        /// { "token": "JWT_TOKEN" }
+        if (!data.containsKey("token")) {
+          throw Exception("Token bulunamadı!");
+        }
 
-    return token;
+        final token = data["token"] as String;
+        await storage.write(key: 'token', value: token);
+
+        return token;
+      }
+
+      throw Exception("Giriş başarısız: ${response.statusCode}");
+    } on DioException catch (e) {
+      throw Exception(e.response?.data?.toString() ?? "Giriş başarısız.");
+    }
   }
 
+  // ---------------------------------------------------------------------------
+  // GET PROFILE
+  // ---------------------------------------------------------------------------
   @override
   Future<UserModel> getProfile() async {
-    final response = await dio.get('/api/secure/me');
-    return UserModel.fromJson(response.data as Map<String, dynamic>);
+    try {
+      final response = await dio.get('/api/secure/me');
+
+      if (response.statusCode == 200) {
+        return UserModel.fromJson(response.data as Map<String, dynamic>);
+      }
+
+      throw Exception("Profil alınamadı.");
+    } on DioException catch (e) {
+      throw Exception(e.response?.data?.toString() ?? "Profil alınamadı.");
+    }
   }
 
+  // ---------------------------------------------------------------------------
+  // COMPLETE PROFILE
+  // ---------------------------------------------------------------------------
   @override
   Future<String> completeProfile({
     required String city,
     required String university,
     required String skillLevel,
   }) async {
-    final response = await dio.put(
-      '/api/complete-profile',
-      data: {
-        'city': city,
-        'university': university,
-        'skill_level': skillLevel,
-      },
-    );
+    try {
+      final response = await dio.put(
+        '/api/complete-profile',
+        data: {
+          'city': city,
+          'university': university,
+          'skill_level': skillLevel,
+        },
+      );
 
-    return response.data.toString();
+      if (response.statusCode == 200) {
+        return response.data.toString();
+      }
+
+      throw Exception("Profil tamamlanamadı.");
+    } on DioException catch (e) {
+      throw Exception(e.response?.data?.toString() ?? "Profil tamamlanamadı.");
+    }
   }
 
+  // ---------------------------------------------------------------------------
+  // DELETE ACCOUNT
+  // ---------------------------------------------------------------------------
   @override
   Future<String> deleteAccount() async {
-    final response = await dio.delete('/api/secure/me');
-    return response.data.toString();
+    try {
+      final response = await dio.delete('/api/secure/me');
+
+      if (response.statusCode == 200) {
+        return response.data.toString();
+      }
+
+      throw Exception("Hesap silinemedi.");
+    } on DioException catch (e) {
+      throw Exception(e.response?.data?.toString() ?? "Hesap silinemedi.");
+    }
   }
 }

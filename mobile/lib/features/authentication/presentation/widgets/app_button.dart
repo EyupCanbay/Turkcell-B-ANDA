@@ -1,4 +1,4 @@
-import 'package:bi_anda/core/di/theme/app_colors.dart';
+import 'package:bi_anda/core/theme/app_colors.dart';
 import 'package:bi_anda/features/authentication/presentation/widgets/app_text_styles.dart';
 import 'package:flutter/material.dart';
 

@@ -1,4 +1,6 @@
+import 'package:bi_anda/features/authentication/data/datasources/auth_remote_data_source.dart';
 import 'package:bi_anda/features/authentication/data/repository/auth_repository_impl.dart';
+import 'package:bi_anda/features/authentication/domain/repositories/auth_repository.dart';
 import 'package:bi_anda/features/authentication/domain/usecases/complete_profile_usecase.dart';
 import 'package:bi_anda/features/authentication/domain/usecases/delete_account_usecase.dart';
 import 'package:bi_anda/features/authentication/domain/usecases/get_profile.dart';
@@ -7,9 +9,6 @@ import 'package:bi_anda/features/authentication/domain/usecases/register_usecase
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
-
-import '../../features/authentication/data/datasources/auth_remote_data_source.dart';
-import '../../features/authentication/domain/repositories/auth_repository.dart';
 
 final getIt = GetIt.instance;
 
@@ -23,7 +22,7 @@ Future<void> setupLocator() async {
   getIt.registerLazySingleton<Dio>(() {
     final dio = Dio(
       BaseOptions(
-        baseUrl: 'http://10.0.2.2:8080',
+        baseUrl: 'http://172.20.10.5:8080',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -32,17 +31,18 @@ Future<void> setupLocator() async {
       ),
     );
 
-    // ---- LOG INTERCEPTOR (İstekleri – yanıtları görebileceğiz) ----
+    // LOG INTERCEPTOR
     dio.interceptors.add(
       LogInterceptor(
         request: true,
         requestBody: true,
         responseBody: true,
+        responseHeader: true,
         error: true,
       ),
     );
 
-    // ---- TOKEN INTERCEPTOR ----
+    // TOKEN INTERCEPTOR
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
@@ -61,18 +61,20 @@ Future<void> setupLocator() async {
     return dio;
   });
 
-  // Remote Data Source
-  getIt.registerLazySingleton<AuthRemoteDataSource>(() {
-    return AuthRemoteDataSourceImpl(
+  // Data Source
+  getIt.registerLazySingleton<AuthRemoteDataSource>(
+    () => AuthRemoteDataSourceImpl(
       dio: getIt<Dio>(),
       storage: getIt<FlutterSecureStorage>(),
-    );
-  });
+    ),
+  );
 
   // Repository
-  getIt.registerLazySingleton<AuthRepository>(() {
-    return AuthRepositoryImpl(getIt<AuthRemoteDataSource>());
-  });
+  getIt.registerLazySingleton<AuthRepository>(
+    () => AuthRepositoryImpl(
+      getIt<AuthRemoteDataSource>(),
+    ),
+  );
 
   // Use Cases
   getIt.registerLazySingleton<RegisterUseCase>(

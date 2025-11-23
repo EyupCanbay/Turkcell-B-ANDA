@@ -1,5 +1,6 @@
 import 'package:bi_anda/core/common/widgets/app_snackbar.dart';
-import 'package:bi_anda/core/di/theme/app_colors.dart';
+import 'package:bi_anda/core/theme/app_colors.dart';
+import 'package:bi_anda/features/authentication/domain/usecases/register_usecase.dart';
 import 'package:bi_anda/features/authentication/presentation/bloc/register_bloc.dart';
 import 'package:bi_anda/features/authentication/presentation/bloc/register_event.dart';
 import 'package:bi_anda/features/authentication/presentation/bloc/register_state.dart';
@@ -9,6 +10,7 @@ import 'package:bi_anda/features/authentication/presentation/widgets/app_text_st
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/di/service_locator.dart';
 import 'login_page.dart';
 
 class RegisterPage extends StatelessWidget {
@@ -17,7 +19,7 @@ class RegisterPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => RegisterBloc(),
+      create: (_) => RegisterBloc(getIt<RegisterUseCase>()),
       child: const _RegisterView(),
     );
   }
@@ -33,18 +35,20 @@ class _RegisterView extends StatelessWidget {
       body: SafeArea(
         child: BlocConsumer<RegisterBloc, RegisterState>(
           listener: (context, state) {
+            if (state.errorMessage != null) {
+              AppSnackBar.showError(context, state.errorMessage!);
+            }
+
             if (state.isSuccess) {
-              AppSnackBar.showSuccess(context, "Kayıt başarılı!");
-              Future.delayed(const Duration(milliseconds: 500), () {
+              AppSnackBar.showSuccess(
+                  context, state.successMessage ?? "Kayıt başarılı!");
+
+              Future.delayed(const Duration(milliseconds: 600), () {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (_) => const LoginPage()),
                 );
               });
-            }
-
-            if (state.errorMessage != null) {
-              AppSnackBar.showError(context, state.errorMessage!);
             }
           },
           builder: (context, state) {
@@ -85,8 +89,8 @@ class _RegisterView extends StatelessWidget {
                           ),
                         ],
                       ),
-                      child: Image.network(
-                        "https://lh3.googleusercontent.com/aida-public/AB6AXuBZ1GvO-NeEiYlCIaEoHEDQ4xaomNCu9C2FgbSsLbGVvaaYUEWDBJSNswmPkG9S9LQBWBaZeVKF7lZGcG-Wn1AxzhRXjIUkUIi9tSoKn_uxMfaFfoNrpR0GDWzSxdko-fRWYtUFMEZ_AHojK-NWF7_V0IMDvKFLedF0dBwly6hJ_OuoyrjMzBTMwedUs2i81u3bEnY-hmzunUTQIqBOR4Y1nP0Uf0BhQRAFyDeKF-VmpFO2IgCsvNXA0yR5AaYcQummmNXNSnaJHM4",
+                      child: Image.asset(
+                        "assets/images/turkcell_logo_rm.png",
                         fit: BoxFit.contain,
                       ),
                     ),
@@ -116,8 +120,9 @@ class _RegisterView extends StatelessWidget {
                               children: [
                                 Text(
                                   "Kaydol",
-                                  style: AppTextStyles.titleLarge
-                                      .copyWith(color: AppColors.darkNavy),
+                                  style: AppTextStyles.titleLarge.copyWith(
+                                    color: AppColors.darkNavy,
+                                  ),
                                 ),
                                 const SizedBox(height: 6),
                                 Text(
@@ -130,22 +135,29 @@ class _RegisterView extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 28),
+
+                          // FULL NAME
                           Text("İsim Soyisim", style: AppTextStyles.label),
                           const SizedBox(height: 6),
                           AppTextField(
                             hint: "Adını ve soyadını yaz",
                             prefixIcon: Icons.person,
                             onChanged: (v) =>
-                                bloc.add(RegisterFullNameChanged(v)),
+                                bloc.add(RegisterNameChanged(name: v)),
                           ),
+
+                          // EMAIL
                           const SizedBox(height: 16),
                           Text("Email", style: AppTextStyles.label),
                           const SizedBox(height: 6),
                           AppTextField(
                             hint: "email@adresin.com",
                             prefixIcon: Icons.mail,
-                            onChanged: (v) => bloc.add(RegisterEmailChanged(v)),
+                            onChanged: (v) =>
+                                bloc.add(RegisterEmailChanged(email: v)),
                           ),
+
+                          // PASSWORD
                           const SizedBox(height: 16),
                           Text("Şifre", style: AppTextStyles.label),
                           const SizedBox(height: 6),
@@ -154,14 +166,16 @@ class _RegisterView extends StatelessWidget {
                             prefixIcon: Icons.lock,
                             isPassword: true,
                             onChanged: (v) =>
-                                bloc.add(RegisterPasswordChanged(v)),
+                                bloc.add(RegisterPasswordChanged(password: v)),
                           ),
+
+                          // BUTTON
                           const SizedBox(height: 24),
                           AppButton(
                             text: "Kaydol",
                             isLoading: state.isLoading,
                             onPressed: () {
-                              bloc.add(SubmitRegister());
+                              bloc.add(const SubmitRegister());
                             },
                           ),
                         ],
@@ -169,6 +183,8 @@ class _RegisterView extends StatelessWidget {
                     ),
                   ),
                 ),
+
+                // Bottom navigation text
                 Align(
                   alignment: Alignment.bottomCenter,
                   child: Padding(
@@ -178,15 +194,18 @@ class _RegisterView extends StatelessWidget {
                       children: [
                         Text(
                           "Hesabın var mı? ",
-                          style: AppTextStyles.bodyMedium
-                              .copyWith(color: AppColors.darkNavy),
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: AppColors.darkNavy,
+                          ),
                         ),
                         GestureDetector(
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const LoginPage()),
-                          ),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const LoginPage()),
+                            );
+                          },
                           child: Text(
                             "Giriş Yap",
                             style: AppTextStyles.bodyMedium.copyWith(
