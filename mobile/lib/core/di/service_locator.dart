@@ -6,6 +6,11 @@ import 'package:bi_anda/features/authentication/domain/usecases/delete_account_u
 import 'package:bi_anda/features/authentication/domain/usecases/get_profile.dart';
 import 'package:bi_anda/features/authentication/domain/usecases/login_usecase.dart';
 import 'package:bi_anda/features/authentication/domain/usecases/register_usecase.dart';
+import 'package:bi_anda/features/home/data/datasources/home_remote_data_source.dart';
+import 'package:bi_anda/features/home/data/repository/home_repository_impl.dart';
+import 'package:bi_anda/features/home/domain/repository/home_repository.dart';
+import 'package:bi_anda/features/home/domain/usecases/get_categories.dart';
+import 'package:bi_anda/features/home/domain/usecases/get_lessons.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
@@ -95,5 +100,21 @@ Future<void> setupLocator() async {
 
   getIt.registerLazySingleton<DeleteAccountUseCase>(
     () => DeleteAccountUseCase(getIt<AuthRepository>()),
+  );
+
+  // Home
+  getIt.registerLazySingleton<HomeRemoteDataSource>(
+    () => HomeRemoteDataSourceImpl(getIt<Dio>()),
+  );
+
+  getIt.registerLazySingleton<HomeRepository>(
+    () => HomeRepositoryImpl(getIt<HomeRemoteDataSource>()),
+  );
+  getIt.registerLazySingleton<GetCategoriesUseCase>(
+    () => GetCategoriesUseCase(getIt<HomeRepository>()),
+  );
+
+  getIt.registerLazySingleton<GetLessonsUseCase>(
+    () => GetLessonsUseCase(getIt<HomeRepository>()),
   );
 }

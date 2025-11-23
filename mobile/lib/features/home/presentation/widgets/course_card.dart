@@ -1,67 +1,78 @@
 import 'package:flutter/material.dart';
-import '../pages/home_page.dart';
+import 'package:bi_anda/features/home/data/models/lesson_model.dart';
 
 class CourseCard extends StatelessWidget {
-  final String title;
-  final String description;
-  final String imageUrl;
+  final LessonModel lesson;
 
   const CourseCard({
     super.key,
-    required this.title,
-    required this.description,
-    required this.imageUrl,
+    required this.lesson,
   });
 
   @override
   Widget build(BuildContext context) {
-    const primaryColor = HomePage.primaryColor;
-
     return Container(
       width: 220,
+      margin: const EdgeInsets.only(right: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.10),
+            blurRadius: 10,
           ),
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          AspectRatio(
-            aspectRatio: 16 / 9,
-            child: ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(16)),
-              child: Image.network(imageUrl, fit: BoxFit.cover),
+          // Thumbnail yerine placeholder (şimdilik video-based)
+          Container(
+            height: 120,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: const Color(0xFF002B5C),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(18),
+                topRight: Radius.circular(18),
+              ),
+            ),
+            child: const Icon(
+              Icons.play_circle_fill,
+              color: Colors.white,
+              size: 40,
             ),
           ),
+
           Padding(
             padding: const EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: primaryColor,
-                      fontSize: 14,
-                    )),
+                Text(
+                  lesson.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFF002B5C),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
                 const SizedBox(height: 4),
                 Text(
-                  description,
+                  "${lesson.categoryName} • ${lesson.durationMin} dk • ${lesson.difficulty}",
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: primaryColor.withOpacity(0.7),
+                    color: Colors.black.withOpacity(0.6),
                     fontSize: 12,
                   ),
                 ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );
