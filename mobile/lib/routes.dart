@@ -1,4 +1,5 @@
 import 'package:bi_anda/features/course_detail/presentation/pages/course_detail_page.dart';
+import 'package:bi_anda/features/leaderboard/presentation/pages/leaderboard_page.dart';
 import 'package:bi_anda/main_navigation.dart';
 import 'package:flutter/material.dart';
 import 'features/authentication/presentation/pages/login_page.dart';
@@ -9,6 +10,7 @@ class Routes {
   static const String login = "/login";
   static const String main = "/main";
   static const String courseDetail = "/course-detail";
+  static const String leaderboard = "/leaderboard";
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case register:
@@ -19,6 +21,9 @@ class Routes {
 
       case main:
         return MaterialPageRoute(builder: (_) => const MainNavigationPage());
+
+      case leaderboard:
+        return MaterialPageRoute(builder: (_) => const LeaderboardPage());
 
       case courseDetail:
         final id = settings.arguments as int;

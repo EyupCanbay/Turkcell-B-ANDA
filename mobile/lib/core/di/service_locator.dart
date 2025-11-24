@@ -15,6 +15,11 @@ import 'package:bi_anda/features/home/data/repository/home_repository_impl.dart'
 import 'package:bi_anda/features/home/domain/repository/home_repository.dart';
 import 'package:bi_anda/features/home/domain/usecases/get_categories.dart';
 import 'package:bi_anda/features/home/domain/usecases/get_lessons.dart';
+import 'package:bi_anda/features/leaderboard/data/datasources/leaderboard_remote_data_source.dart';
+import 'package:bi_anda/features/leaderboard/data/repository/leaderboard_repository_impl.dart';
+import 'package:bi_anda/features/leaderboard/domain/repository/leaderboard_repository.dart';
+import 'package:bi_anda/features/leaderboard/domain/usecases/get_leaderboard_usecase.dart';
+import 'package:bi_anda/features/leaderboard/presentation/bloc/leaderboard_bloc.dart';
 import 'package:bi_anda/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -147,5 +152,27 @@ Future<void> setupLocator() async {
       getProfileUseCase: getIt<GetProfileUseCase>(),
       completeProfileUseCase: getIt<CompleteProfileUseCase>(),
     ),
+  );
+
+  // --- LEADERBOARD ---
+
+  // Datasource
+  getIt.registerLazySingleton<LeaderboardRemoteDataSource>(
+    () => LeaderboardRemoteDataSourceImpl(getIt<Dio>()),
+  );
+
+  // Repository
+  getIt.registerLazySingleton<LeaderboardRepository>(
+    () => LeaderboardRepositoryImpl(getIt<LeaderboardRemoteDataSource>()),
+  );
+
+  // UseCase
+  getIt.registerLazySingleton<GetLeaderboardUseCase>(
+    () => GetLeaderboardUseCase(getIt<LeaderboardRepository>()),
+  );
+
+  // BLoC
+  getIt.registerFactory<LeaderboardBloc>(
+    () => LeaderboardBloc(getIt<GetLeaderboardUseCase>()),
   );
 }

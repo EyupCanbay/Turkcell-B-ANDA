@@ -1,4 +1,5 @@
 import 'package:bi_anda/features/home/presentation/pages/home_page.dart';
+import 'package:bi_anda/features/leaderboard/presentation/pages/leaderboard_page.dart';
 import 'package:bi_anda/features/my_courses/presentation/pages/my_courses_page.dart';
 import 'package:flutter/material.dart';
 import 'features/profile/presentation/pages/user_profile_page.dart';
@@ -16,6 +17,7 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
   final List<Widget> pages = const [
     HomePage(), // Home
     MyCoursesPage(), // Lessons
+    LeaderboardPage(), //LeaderBoard
     UserProfilePage(), // Profile
   ];
 
@@ -37,6 +39,10 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.menu_book_outlined),
             label: "Lessons",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.leaderboard_outlined),
+            label: "Leaderboard",
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
