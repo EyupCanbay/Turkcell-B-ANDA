@@ -2,17 +2,18 @@ package domain
 
 import (
 	"time"
+
 	"gorm.io/gorm"
 )
 
 type User struct {
-	ID         uint           `gorm:"primaryKey"`
-	Name       string         `gorm:"not null"`
-	Email      string         `gorm:"unique;not null"`
-	Password   string         `gorm:"not null"`
-	City       string         `gorm:"size:50"`
-	University string         `gorm:"size:100"`
-	SkillLevel string         `gorm:"size:20"`
+	ID         uint   `gorm:"primaryKey"`
+	Name       string `gorm:"not null"`
+	Email      string `gorm:"unique;not null"`
+	Password   string `gorm:"not null"`
+	City       string `gorm:"size:50"`
+	University string `gorm:"size:100"`
+	SkillLevel string `gorm:"size:20"`
 	CreatedAt  time.Time
 	DeletedAt  gorm.DeletedAt `gorm:"index"` // Soft Delete Sihri
 }
@@ -35,10 +36,12 @@ type UpdateProfileRequest struct {
 }
 
 type UserResponse struct {
-	ID    uint   `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
-	City  string `json:"city"`
+	ID         uint   `json:"id"`
+	Name       string `json:"name"`
+	Email      string `json:"email"`
+	City       string `json:"city"`
+	University string `json:"university"`
+	SkillLevel string `json:"skill_level"`
 }
 
 type UserRepository interface {
@@ -46,12 +49,12 @@ type UserRepository interface {
 	FindByEmail(email string) (*User, error)
 	FindByID(id uint) (*User, error)
 	Update(user *User) error
-	Delete(id uint) error 
+	Delete(id uint) error
 }
 
 type AuthService interface {
 	Register(req *RegisterRequest) error
-	Login(req *LoginRequest) (string, error) 
+	Login(req *LoginRequest) (string, error)
 }
 
 type UserService interface {

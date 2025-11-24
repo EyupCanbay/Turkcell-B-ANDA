@@ -15,6 +15,7 @@ import 'package:bi_anda/features/home/data/repository/home_repository_impl.dart'
 import 'package:bi_anda/features/home/domain/repository/home_repository.dart';
 import 'package:bi_anda/features/home/domain/usecases/get_categories.dart';
 import 'package:bi_anda/features/home/domain/usecases/get_lessons.dart';
+import 'package:bi_anda/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
@@ -31,7 +32,8 @@ Future<void> setupLocator() async {
   getIt.registerLazySingleton<Dio>(() {
     final dio = Dio(
       BaseOptions(
-        baseUrl: 'http://172.20.10.5:8080',
+        baseUrl:
+            'http://10.34.20.43:8080', //172.20.10.5 telefon //10.34.20.43 sanal emülatör
         headers: {
           'Content-Type': 'application/json',
         },
@@ -137,5 +139,13 @@ Future<void> setupLocator() async {
 // UseCase
   getIt.registerLazySingleton<GetCourseDetailUseCase>(
     () => GetCourseDetailUseCase(getIt<CourseDetailRepository>()),
+  );
+
+  //Profile
+  getIt.registerFactory<ProfileBloc>(
+    () => ProfileBloc(
+      getProfileUseCase: getIt<GetProfileUseCase>(),
+      completeProfileUseCase: getIt<CompleteProfileUseCase>(),
+    ),
   );
 }

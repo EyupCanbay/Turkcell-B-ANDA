@@ -18,7 +18,7 @@ func (s *userService) GetProfile(userID uint) (*domain.UserResponse, error) {
 		return nil, err
 	}
 	return &domain.UserResponse{
-		ID: user.ID, Name: user.Name, Email: user.Email, City: user.City,
+		ID: user.ID, Name: user.Name, Email: user.Email, City: user.City, University: user.University, SkillLevel: user.SkillLevel,
 	}, nil
 }
 
@@ -27,11 +27,11 @@ func (s *userService) UpdateProfile(userID uint, req *domain.UpdateProfileReques
 	if err != nil {
 		return err
 	}
-	
+
 	user.City = req.City
 	user.University = req.University
 	user.SkillLevel = req.SkillLevel
-	
+
 	return s.repo.Update(user)
 }
 

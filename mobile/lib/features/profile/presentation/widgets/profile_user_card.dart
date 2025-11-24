@@ -1,125 +1,113 @@
 import 'package:flutter/material.dart';
-import '../styles/profile_colors.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../authentication/domain/entities/user.dart';
 
 class ProfileUserCard extends StatelessWidget {
-  const ProfileUserCard({super.key});
+  final User user;
+
+  const ProfileUserCard({super.key, required this.user});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: ProfileColors.cardLight,
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Column(
-          children: [
-            _buildAvatar(),
-            const SizedBox(height: 16),
-            _buildNameAndId(),
-            const SizedBox(height: 16),
-            _buildLocationAndSchool(),
-          ],
-        ),
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppColors.cardLight,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.softShadow,
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Profil Resmi
+          Stack(
+            children: [
+              Container(
+                width: 112,
+                height: 112,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  image: const DecorationImage(
+                    image: AssetImage('assets/images/turkcell_logo_rm.png'),
+                    fit: BoxFit.cover,
+                  ),
+                  border: Border.all(color: Colors.white, width: 4),
+                ),
+              ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: AppColors.designYellow,
+                    shape: BoxShape.circle,
+                    border:
+                        Border.all(color: AppColors.backgroundLight, width: 2),
+                  ),
+                  child: const Icon(Icons.camera_alt,
+                      size: 18, color: AppColors.textMain),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // İsim
+          Text(
+            user.name ?? "İsimsiz Kullanıcı",
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textMain,
+              fontFamily: 'Plus Jakarta Sans',
+            ),
+          ),
+          // ID (Email veya ID kullanılabilir)
+          Text(
+            "Seviye:${user.skillLevel}",
+            style: const TextStyle(
+              fontSize: 16,
+              color: AppColors.textSub,
+              fontFamily: 'Plus Jakarta Sans',
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Bilgiler
+          Column(
+            children: [
+              _buildInfoRow(
+                  Icons.location_on_outlined, user.city ?? "Konum ekle"),
+              const SizedBox(height: 12),
+              _buildInfoRow(
+                  Icons.school_outlined, user.university ?? "Üniversite ekle"),
+            ],
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildAvatar() {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Container(
-          width: 112,
-          height: 112,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            image: const DecorationImage(
-              image: NetworkImage("https://picsum.photos/200"),
-              fit: BoxFit.cover,
-            ),
-          ),
-        ),
-        Positioned(
-          right: -2,
-          bottom: 0,
-          child: Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: ProfileColors.primary,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: ProfileColors.backgroundLight,
-                width: 2,
-              ),
-            ),
-            child: const Icon(
-              Icons.photo_camera,
-              size: 18,
-              color: ProfileColors.secondary,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildNameAndId() {
-    return Column(
-      children: const [
-        Text(
-          "Cem Yılmaz",
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w800,
-            color: ProfileColors.textLight,
-          ),
-        ),
-        SizedBox(height: 4),
-        Text(
-          "GNC12345",
-          style: TextStyle(
-            fontSize: 15,
-            color: ProfileColors.subtextLight,
-          ),
-        )
-      ],
-    );
-  }
-
-  Widget _buildLocationAndSchool() {
-    return Column(
-      children: const [
-        _IconText(icon: Icons.location_on, text: "Istanbul"),
-        SizedBox(height: 8),
-        _IconText(icon: Icons.school, text: "Marmara University"),
-      ],
-    );
-  }
-}
-
-class _IconText extends StatelessWidget {
-  final IconData icon;
-  final String text;
-
-  const _IconText({required this.icon, required this.text});
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildInfoRow(IconData icon, String text) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(icon, color: ProfileColors.subtextLight, size: 20),
-        const SizedBox(width: 8),
+        Icon(icon, size: 24, color: AppColors.textSub),
+        const SizedBox(width: 12),
         Text(
           text,
           style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: ProfileColors.textLight,
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textMain,
+            fontFamily: 'Plus Jakarta Sans',
           ),
         ),
       ],
